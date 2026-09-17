@@ -140,5 +140,11 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: "Noto Sans TC", system-ui, sans-serif;
+  }
+
+  h1,
+  h2 {
+    font-family: "Space Grotesk", "Noto Sans TC", system-ui, sans-serif;
   }
 }
