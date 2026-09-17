@@ -73,11 +73,17 @@ async function handleLineWebhook(request: Request, env: RuntimeEnv): Promise<Res
 
   const body = await request.text();
   if (!signature || !(await verifyLineSignature(body, signature, channelSecret))) {
+    console.error("[LINE webhook] invalid signature");
     return new Response("Invalid signature", { status: 401 });
   }
 
   let payload: {
-    events?: Array<{ type?: string; source?: { userId?: string }; message?: { type?: string } }>;
+    events?: Array<{
+      type?: string;
+      replyToken?: string;
+      source?: { userId?: string };
+      message?: { type?: string; text?: string };
+    }>;
   };
   try {
     payload = JSON.parse(body);
@@ -85,33 +91,37 @@ async function handleLineWebhook(request: Request, env: RuntimeEnv): Promise<Res
     return new Response("Bad Request", { status: 400 });
   }
 
-  const userIds = [...new Set(
-    (payload.events ?? [])
-      .filter((event) => event.type === "message")
-      .map((event) => event.source?.userId)
-      .filter((userId): userId is string => Boolean(userId)),
-  )];
+  const messageEvents = (payload.events ?? []).filter(
+    (event) => event.type === "message" && event.message?.type === "text",
+  );
 
-  if (userIds.length === 0) return new Response("OK");
+  console.log(`[LINE webhook] received ${messageEvents.length} message event(s)`);
 
-  const response = await fetch("https://api.line.me/v2/bot/message/multicast", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      to: userIds,
-      messages: [{
-        type: "text",
-        text: "🔔【行銷數據後台】\nLINE 通知測試成功！\n你的 LINE 串接已經可以正常發送訊息 🎉",
-      }],
-    }),
-  });
+  for (const event of messageEvents) {
+    if (!event.replyToken) continue;
 
-  if (!response.ok) {
-    console.error(`[LINE webhook] push failed: ${response.status}`);
-    return new Response("LINE push failed", { status: 502 });
+    const response = await fetch("https://api.line.me/v2/bot/message/reply", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        replyToken: event.replyToken,
+        messages: [{
+          type: "text",
+          text: "🔔【行銷數據後台】\nLINE Webhook 收到你的訊息了！\n串接測試成功 🎉",
+        }],
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error(`[LINE webhook] reply failed: ${response.status} ${errorBody}`);
+      return new Response("LINE reply failed", { status: 502 });
+    }
+
+    console.log("[LINE webhook] reply sent successfully");
   }
 
   return new Response("OK");
