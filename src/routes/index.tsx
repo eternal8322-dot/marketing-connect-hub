@@ -67,8 +67,8 @@ function Dashboard() {
         <CardHeader>
           <CardTitle className="text-base">每日營收走勢</CardTitle>
         </CardHeader>
-        <CardContent className="h-[320px]">
-          <ResponsiveContainer width="100%" height="100%">
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={dailyPerformance}>
               <defs>
                 <linearGradient id="metaFill" x1="0" y1="0" x2="0" y2="1">
