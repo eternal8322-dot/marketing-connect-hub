@@ -3,8 +3,25 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
+type RuntimeEnv = Record<string, unknown>;
+
+type ServerRequestContext = {
+  cloudflareEnv: RuntimeEnv;
+};
+
+declare module "@tanstack/react-router" {
+  interface Register {
+    server: {
+      requestContext: ServerRequestContext;
+    };
+  }
+}
+
 type ServerEntry = {
-  fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
+  fetch: (
+    request: Request,
+    opts?: { context?: ServerRequestContext },
+  ) => Promise<Response> | Response;
 };
 
 let serverEntryPromise: Promise<ServerEntry> | undefined;
@@ -45,10 +62,15 @@ function isH3SwallowedErrorBody(body: string): boolean {
 }
 
 export default {
-  async fetch(request: Request, env: unknown, ctx: unknown) {
+  async fetch(request: Request, env: RuntimeEnv, _ctx: unknown) {
     try {
       const handler = await getServerEntry();
-      const response = await handler.fetch(request, env, ctx);
+      // Cloudflare Worker bindings live in the per-request env object. Pass them
+      // through TanStack Start's request context so server functions can read
+      // them at runtime instead of relying on process.env.
+      const response = await handler.fetch(request, {
+        context: { cloudflareEnv: env },
+      });
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
       console.error(error);
