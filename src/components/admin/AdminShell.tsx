@@ -21,28 +21,29 @@ export function AdminShell({
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar p-5 md:flex">
-        <div className="mb-8 flex items-center gap-2">
-          <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Sparkles className="size-4" />
+    <div className="min-h-screen bg-background text-foreground md:flex">
+      <aside className="hidden w-64 shrink-0 flex-col border-r-2 border-foreground bg-sidebar p-5 md:flex">
+        <div className="mb-8 flex items-center gap-3">
+          <span className="flex size-10 items-center justify-center rounded-lg border-2 border-foreground bg-primary text-primary-foreground shadow-[3px_3px_0_var(--foreground)]">
+            <Sparkles className="size-5" />
           </span>
           <div>
-            <p className="text-sm font-semibold tracking-tight">行銷數據後台</p>
-            <p className="text-xs text-muted-foreground">Marketing Console</p>
+            <p className="text-sm font-bold tracking-tight">行銷數據後台</p>
+            <p className="text-xs text-sidebar-foreground/70">MARKETING CONSOLE</p>
           </div>
         </div>
-        <nav className="flex flex-col gap-1">
+
+        <nav className="flex flex-col gap-2">
           {nav.map((item) => {
             const active = pathname === item.to;
             return (
               <Link
                 key={item.to}
                 to={item.to}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                className={`flex items-center gap-3 rounded-lg border-2 px-3 py-2.5 text-sm font-semibold transition-transform ${
                   active
-                    ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
-                    : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+                    ? "border-foreground bg-primary text-primary-foreground shadow-[3px_3px_0_var(--foreground)] -translate-x-0.5 -translate-y-0.5"
+                    : "border-transparent text-sidebar-foreground hover:border-sidebar-border hover:bg-sidebar-accent"
                 }`}
               >
                 <item.icon className="size-4" />
@@ -51,23 +52,30 @@ export function AdminShell({
             );
           })}
         </nav>
-        <div className="mt-auto rounded-xl border border-sidebar-border bg-card p-3 text-xs text-muted-foreground">
-          目前為<span className="font-medium text-foreground">示範資料</span>模式，
-          串接完成後會自動換成真實數據。
+
+        <div className="mt-auto rounded-lg border-2 border-foreground bg-primary p-3 text-xs font-medium text-primary-foreground shadow-[3px_3px_0_var(--foreground)]">
+          <span className="font-bold">DEMO MODE</span>
+          <p className="mt-1 opacity-80">目前使用示範資料，串接完成後會自動換成真實數據。</p>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="border-b border-border px-5 py-5 md:px-8">
-          <h1 className="text-xl font-semibold tracking-tight md:text-2xl">{title}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
-          <nav className="mt-4 flex gap-2 overflow-x-auto md:hidden">
+        <header className="border-b-2 border-foreground bg-card px-5 py-5 md:px-8">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="mb-1 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">Marketing Dashboard</p>
+              <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{title}</h1>
+              <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+            </div>
+            <span className="hidden rounded-full border-2 border-foreground bg-primary px-3 py-1 text-xs font-bold md:inline-flex">LIVE UI</span>
+          </div>
+          <nav className="mt-5 flex gap-2 overflow-x-auto md:hidden">
             {nav.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
-                className={`whitespace-nowrap rounded-full border border-border px-3 py-1.5 text-xs ${
-                  pathname === item.to ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                className={`whitespace-nowrap rounded-full border-2 border-foreground px-3 py-1.5 text-xs font-bold ${
+                  pathname === item.to ? "bg-primary text-primary-foreground" : "bg-card text-foreground"
                 }`}
               >
                 {item.label}
@@ -75,7 +83,7 @@ export function AdminShell({
             ))}
           </nav>
         </header>
-        <main className="flex-1 px-5 py-6 md:px-8">{children}</main>
+        <main className="flex-1 px-5 py-7 md:px-8 md:py-8">{children}</main>
       </div>
     </div>
   );
